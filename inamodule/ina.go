@@ -78,8 +78,6 @@ func newSensor(
 	attr *Config,
 	logger golog.Logger,
 ) (sensor.Sensor, error) {
-	var err error
-	
 	regFunc, ok := modelInitializer[attr.Model]
 	if !ok {
 		avail := ""
@@ -106,6 +104,14 @@ func newSensor(
 		bus:    i2cbus,
 		addr:   byte(addr),
 		reg: reg,
+	}
+	
+	switch attr.Model {
+		case "ina3221":
+			err = s.configure3221(ctx)
+			if err != nil {
+				return nil, err
+			}
 	}
 
 	return s, nil
@@ -195,7 +201,7 @@ func (ina *inaSensor) Readings(ctx context.Context, extra map[string]interface{}
 	}
 	pm.Voltage = float64(binary.BigEndian.Uint16(bus)) / 1000.
 	ina.logger.Infof("v1 bus : %d", bus)
-	ina.logger.Infof("v1 v : %d", pm.Voltage)
+	ina.logger.Infof("v1 v : %f", pm.Voltage)
 
 	if currentRegister, ok := ina.reg[Channel1Current]; ok {
 		// the chip might have both current + power supported for ch1, or neither.
@@ -250,7 +256,7 @@ func (ina *inaSensor) Readings(ctx context.Context, extra map[string]interface{}
 	}
 	pm2.Voltage = float64(binary.BigEndian.Uint16(bus)) / 1000.
 	ina.logger.Infof("v2 bus : %d", bus)
-	ina.logger.Infof("v2 v : %d", pm2.Voltage)
+	ina.logger.Infof("v2 v : %f", pm2.Voltage)
 	shunt, err := handle.ReadBlockData(ctx, ina.reg[Channel2ShuntVoltage].Address, 2)
 	if err != nil {
 		return nil, err
@@ -272,7 +278,7 @@ func (ina *inaSensor) Readings(ctx context.Context, extra map[string]interface{}
 		return nil, err
 	}
 	ina.logger.Infof("v3 bus : %d", bus)
-	ina.logger.Infof("v3 v : %d", pm3.Voltage)
+	ina.logger.Infof("v3 v : %f", pm3.Voltage)
 	shuntV = int64(binary.BigEndian.Uint16(shunt)) * 40 / 8 / 1000000
 	pm3.Current = float64(shuntV) * senseResistor
 	pm3.Power = pm3.Current * pm3.Voltage
