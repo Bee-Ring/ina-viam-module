@@ -11,6 +11,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/edaniels/golog"
 	"go.viam.com/utils"
@@ -106,6 +107,14 @@ func newSensor(
 		reg: reg,
 		boardModel: attr.Model,
 	}
+	
+	switch s.boardModel {
+		case "ina3221":
+			err := s.configure3221(ctx)
+			if err != nil {
+				return nil, err
+			}
+	}
 
 	return s, nil
 }
@@ -133,6 +142,7 @@ type powerMonitor struct {
 }
 
 func (ina *inaSensor) configure3221(ctx context.Context) error {
+	ina.logger.Infof("setting up 3221")
 	handle, err := ina.bus.OpenHandle(ina.addr)
 	if err != nil {
 		ina.logger.Errorf("can't open inaSensor i2c: %s", err)
@@ -145,6 +155,8 @@ func (ina *inaSensor) configure3221(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	
+	utils.SelectContextOrWait(ctx, 1. * time.Second)
 	
 	// configuration bitmask
 	config := uint16(0b0000000000000000)
@@ -167,14 +179,6 @@ func (ina *inaSensor) configure3221(ctx context.Context) error {
 // Readings returns a list containing three items (voltage, current, and power).
 func (ina *inaSensor) Readings(ctx context.Context, extra map[string]interface{}) (map[string]interface{}, error) {
 	
-	switch ina.boardModel {
-		case "ina3221":
-			err := ina.configure3221(ctx)
-			if err != nil {
-				return nil, err
-			}
-	}
-	
 	handle, err := ina.bus.OpenHandle(ina.addr)
 	if err != nil {
 		ina.logger.Errorf("can't open inaSensor i2c: %s", err)
@@ -182,13 +186,15 @@ func (ina *inaSensor) Readings(ctx context.Context, extra map[string]interface{}
 	}
 	defer utils.UncheckedErrorFunc(handle.Close)
 
-	// use the calibration result to set the scaling factor
-	// of the current and power registers for the maximum resolution
-	buf := make([]byte, 2)
-	binary.BigEndian.PutUint16(buf, ina.cal)
-	err = handle.WriteBlockData(ctx, ina.reg[Calibration].Address, buf)
-	if err != nil {
-		return nil, err
+	if calReg, ok := ina.reg[Calibration]; ok {
+		// use the calibration result to set the scaling factor
+		// of the current and power registers for the maximum resolution
+		buf := make([]byte, 2)
+		binary.BigEndian.PutUint16(buf, ina.cal)
+		err = handle.WriteBlockData(ctx, calReg.Address, buf)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var pm powerMonitor
