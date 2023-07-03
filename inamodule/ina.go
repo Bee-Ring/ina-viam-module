@@ -235,10 +235,11 @@ func (ina *inaSensor) Readings(ctx context.Context, extra map[string]interface{}
 		if err != nil {
 			return nil, err
 		}
+		ina.logger.Infof("inaSensor shunt raw : %d", shunt)
 		shuntV := int64(binary.BigEndian.Uint16(shunt)) * 40 / 8 / 1000000
 		current := float64(shuntV) * senseResistor
 		power := current * pm.Voltage
-		ina.logger.Debugf("inaSensor shunt : %d", shuntV)
+		ina.logger.Infof("inaSensor shunt : %d", shuntV)
 		pm.Current = current
 		pm.Power = power
 	}
