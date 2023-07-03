@@ -104,14 +104,7 @@ func newSensor(
 		bus:    i2cbus,
 		addr:   byte(addr),
 		reg: reg,
-	}
-	
-	switch attr.Model {
-		case "ina3221":
-			err = s.configure3221(ctx)
-			if err != nil {
-				return nil, err
-			}
+		boardModel: attr.Model,
 	}
 
 	return s, nil
@@ -129,6 +122,7 @@ type inaSensor struct {
 	currentLSB int64
 	powerLSB   int64
 	cal        uint16
+	boardModel string
 }
 
 type powerMonitor struct {
@@ -172,6 +166,15 @@ func (ina *inaSensor) configure3221(ctx context.Context) error {
 
 // Readings returns a list containing three items (voltage, current, and power).
 func (ina *inaSensor) Readings(ctx context.Context, extra map[string]interface{}) (map[string]interface{}, error) {
+	
+	switch ina.boardModel {
+		case "ina3221":
+			err := ina.configure3221(ctx)
+			if err != nil {
+				return nil, err
+			}
+	}
+	
 	handle, err := ina.bus.OpenHandle(ina.addr)
 	if err != nil {
 		ina.logger.Errorf("can't open inaSensor i2c: %s", err)
