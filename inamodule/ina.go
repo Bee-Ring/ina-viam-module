@@ -143,8 +143,7 @@ type powerMonitor struct {
 	Power   float64
 }
 
-func (ina *inaSensor) configure3221(ctx context.Context) error {
-	ina.logger.Infof("setting up 3221")
+func (ina *inaSensor) configure219(ctx context.Context) error {
 	handle, err := ina.bus.OpenHandle(ina.addr)
 	if err != nil {
 		ina.logger.Errorf("can't open inaSensor i2c: %s", err)
@@ -158,12 +157,44 @@ func (ina *inaSensor) configure3221(ctx context.Context) error {
 		return err
 	}
 	
-	utils.SelectContextOrWait(ctx, 1. * time.Second)
+	utils.SelectContextOrWait(ctx, 1. * time.Millisecond)
+	
+	// configuration bitmask
+	config := uint16(0b0000000000000000)
+
+	// Bus ADC and Shunt ADC 12 bit+128 samples
+	uint16_t config = 0x0000;
+	// 0b0000000000000xxx << 0 Mode (Bus and Shunt continuous -> 0b111)
+	// Continuous operation of Bus and Shunt ADCs
+	config |= 0b0000000000000111;
+	// Bus ADC and Shunt ADC 12 bit+128 samples -> 68.10 ms
+	config |= 0b0000011110000000;
+	config |= 0b0000000001111000;
+	buf = make([]byte, 2)
+	binary.BigEndian.PutUint16(buf, config)
+	return handle.WriteBlockData(ctx, ina.reg[Configuration].Address, buf)
+}
+
+func (ina *inaSensor) configure3221(ctx context.Context) error {
+	handle, err := ina.bus.OpenHandle(ina.addr)
+	if err != nil {
+		ina.logger.Errorf("can't open inaSensor i2c: %s", err)
+		return err
+	}
+	defer utils.UncheckedErrorFunc(handle.Close)
+	buf := make([]byte, 2)
+	binary.BigEndian.PutUint16(buf, uint16(0x8000))
+	err = handle.WriteBlockData(ctx, ina.reg[Configuration].Address, buf)
+	if err != nil {
+		return err
+	}
+	
+	utils.SelectContextOrWait(ctx, 1. * time.Millisecond)
 	
 	// configuration bitmask
 	config := uint16(0b0000000000000000)
 	
-	  // 0b0xxx000000000000 << 12 Channel Enables (1 -> ON)
+	// 0b0xxx000000000000 << 12 Channel Enables (1 -> ON)
 	config |= 0b0111000000000000
 	// 0b0000xxx000000000 << 9 Averaging Mode (0 -> 1 sample, 111 -> 1024 samples)
 	config |= 0b0000000000000000
@@ -205,14 +236,11 @@ func (ina *inaSensor) Readings(ctx context.Context, extra map[string]interface{}
 	if err != nil {
 		return nil, err
 	}
-	ina.logger.Infof("v1 bus : %d", bus)
 	// Check if bit zero is set, if set the ADC has overflowed.
 	if binary.BigEndian.Uint16(bus)&1 > 0 {
 		return nil, errors.New("inaSensor bus voltage register overflow")
 	}
 	pm.Voltage = float64(binary.BigEndian.Uint16(bus)) / 1000.
-	ina.logger.Infof("v1 bus : %d", bus)
-	ina.logger.Infof("v1 v : %f", pm.Voltage)
 
 	if currentRegister, ok := ina.reg[Channel1Current]; ok {
 		// the chip might have both current + power supported for ch1, or neither.
@@ -235,13 +263,7 @@ func (ina *inaSensor) Readings(ctx context.Context, extra map[string]interface{}
 		if err != nil {
 			return nil, err
 		}
-		ina.logger.Infof("inaSensor shunt raw : %d", shunt)
-		shuntV := float64(binary.BigEndian.Uint16(shunt)) * 40. / 8. / 1000000.
-		current := float64(shuntV) / senseResistor
-		power := current * pm.Voltage
-		ina.logger.Infof("inaSensor shunt : %d", shuntV)
-		pm.Current = current
-		pm.Power = power
+		pm.Current, pm.Power = currentAndPowerFromVoltages(shunt, pm.Voltage)
 	}
 	
 	// Just one channel being measured. We return now.
@@ -267,15 +289,12 @@ func (ina *inaSensor) Readings(ctx context.Context, extra map[string]interface{}
 		return nil, errors.New("inaSensor bus voltage register overflow")
 	}
 	pm2.Voltage = float64(binary.BigEndian.Uint16(bus)) / 1000.
-	ina.logger.Infof("v2 bus : %d", bus)
-	ina.logger.Infof("v2 v : %f", pm2.Voltage)
 	shunt, err := handle.ReadBlockData(ctx, ina.reg[Channel2ShuntVoltage].Address, 2)
 	if err != nil {
 		return nil, err
 	}
-	shuntV := int64(binary.BigEndian.Uint16(shunt)) * 40 / 8 / 1000000
-	pm2.Current = float64(shuntV) * senseResistor
-	pm2.Power = pm2.Current * pm2.Voltage
+	pm2.Current, pm2.Power = currentAndPowerFromVoltages(shunt, pm2.Voltage)
+	
 	bus, err = handle.ReadBlockData(ctx, ina.reg[Channel3BusVoltage].Address, 2)
 	if err != nil {
 		return nil, err
@@ -289,11 +308,7 @@ func (ina *inaSensor) Readings(ctx context.Context, extra map[string]interface{}
 	if err != nil {
 		return nil, err
 	}
-	ina.logger.Infof("v3 bus : %d", bus)
-	ina.logger.Infof("v3 v : %f", pm3.Voltage)
-	shuntV = int64(binary.BigEndian.Uint16(shunt)) * 40 / 8 / 1000000
-	pm3.Current = float64(shuntV) * senseResistor
-	pm3.Power = pm3.Current * pm3.Voltage
+	pm3.Current, pm3.Power = currentAndPowerFromVoltages(shunt, pm3.Voltage)
 	return map[string]interface{}{
 		"channel1": map[string]interface{}{
 			"volts": pm.Voltage,
@@ -311,4 +326,11 @@ func (ina *inaSensor) Readings(ctx context.Context, extra map[string]interface{}
 			"watts": pm3.Power,
 		},
 	}, nil
+}
+
+func currentAndPowerFromVoltages(shuntRaw []byte, busV float64) (float64, float64) {
+	shuntV := float64(binary.BigEndian.Uint16(shuntRaw)) * 40. / 8. / 1000000.
+	current := float64(shuntV) / senseResistor // TODO: adjustable sense resistor values
+	power := current * busV
+	return current, power
 }
