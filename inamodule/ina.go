@@ -114,6 +114,8 @@ func newSensor(
 			if err != nil {
 				return nil, err
 			}
+		default:
+			return nil, fmt.Errorf("%s is not a supported INA model", s.boardModel)
 	}
 
 	return s, nil
