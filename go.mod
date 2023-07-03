@@ -4,10 +4,8 @@ go 1.19
 
 require (
 	github.com/edaniels/golog v0.0.0-20230215213219-28954395e8d0
-	go.viam.com/rdk v0.2.50
-	go.viam.com/utils v0.1.36
-	periph.io/x/conn/v3 v3.7.0
-	periph.io/x/host/v3 v3.8.2
+	go.viam.com/rdk v0.3.1-0.20230630181839-3621565efe4e
+	go.viam.com/utils v0.1.37
 )
 
 require (
@@ -75,10 +73,11 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
+	github.com/mkch/gpio v0.0.0-20190919032813-8327cd97d95e // indirect
 	github.com/montanaflynn/stats v0.7.0 // indirect
 	github.com/pion/datachannel v1.5.5 // indirect
 	github.com/pion/dtls/v2 v2.2.7 // indirect
-	github.com/pion/ice/v2 v2.3.4 // indirect
+	github.com/pion/ice/v2 v2.3.5 // indirect
 	github.com/pion/interceptor v0.1.17 // indirect
 	github.com/pion/logging v0.2.2 // indirect
 	github.com/pion/mdns v0.0.8-0.20230502060824-17c664ea7d5c // indirect
@@ -88,10 +87,10 @@ require (
 	github.com/pion/sctp v1.8.7 // indirect
 	github.com/pion/sdp/v3 v3.0.6 // indirect
 	github.com/pion/srtp/v2 v2.0.15 // indirect
-	github.com/pion/stun v0.5.2 // indirect
+	github.com/pion/stun v0.6.0 // indirect
 	github.com/pion/transport/v2 v2.2.1 // indirect
 	github.com/pion/turn/v2 v2.1.0 // indirect
-	github.com/pion/webrtc/v3 v3.2.4 // indirect
+	github.com/pion/webrtc/v3 v3.2.6 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
@@ -99,7 +98,7 @@ require (
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/smartystreets/assertions v1.13.0 // indirect
 	github.com/srikrsna/protoc-gen-gotag v0.6.2 // indirect
-	github.com/stretchr/testify v1.8.3 // indirect
+	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
@@ -113,7 +112,7 @@ require (
 	go.uber.org/goleak v1.2.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
-	go.viam.com/api v0.1.131 // indirect
+	go.viam.com/api v0.1.139 // indirect
 	go.viam.com/test v1.1.1-0.20220913152726-5da9916c08a2 // indirect
 	golang.org/x/crypto v0.9.0 // indirect
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect
@@ -136,4 +135,6 @@ require (
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	nhooyr.io/websocket v1.8.7 // indirect
+	periph.io/x/conn/v3 v3.7.0 // indirect
+	periph.io/x/host/v3 v3.8.2 // indirect
 )
