@@ -19,10 +19,12 @@ import (
 	"go.viam.com/rdk/components/board"
 	"go.viam.com/rdk/components/board/genericlinux"
 	"go.viam.com/rdk/components/sensor"
+	"go.viam.com/rdk/components/powersensor"
 	"go.viam.com/rdk/resource"
 )
 
 var Model = resource.ModelNamespace("beering").WithFamily("sensor").WithModel("ina")
+var PowerModel = resource.ModelNamespace("beering").WithFamily("power_sensor").WithModel("ina")
 
 const (
 	milliAmp                   = 1000 * 1000 // milliAmp = 1000 microAmpere * 1000 nanoAmpere
@@ -76,6 +78,23 @@ func init() {
 				return newSensor(ctx, deps, conf.ResourceName(), newConf, logger)
 		},
 	})
+	resource.RegisterComponent(
+		powersensor.API,
+		PowerModel,
+		resource.Registration[powersensor.PowerSensor, *Config]{
+			Constructor: func(
+				ctx context.Context,
+				deps resource.Dependencies,
+				conf resource.Config,
+				logger golog.Logger,
+			) (powersensor.PowerSensor, error) {
+				newConf, err := resource.NativeConfig[*Config](conf)
+				if err != nil {
+					return nil, err
+				}
+				return newSensor(ctx, deps, conf.ResourceName(), newConf, logger)
+		},
+	})
 }
 
 func newSensor(
@@ -84,7 +103,7 @@ func newSensor(
 	name resource.Name,
 	attr *Config,
 	logger golog.Logger,
-) (sensor.Sensor, error) {
+) (*inaSensor, error) {
 	regFunc, ok := modelInitializer[attr.Model]
 	if !ok {
 		avail := ""

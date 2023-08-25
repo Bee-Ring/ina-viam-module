@@ -23,7 +23,7 @@ func mainWithArgs(ctx context.Context, args []string, logger golog.Logger) error
 	}
 
 	inaSensorModule.AddModelFromRegistry(ctx, sensor.API, inamodule.Model)
-	inaSensorModule.AddModelFromRegistry(ctx, powersensor.API, inamodule.Model)
+	inaSensorModule.AddModelFromRegistry(ctx, powersensor.API, inamodule.PowerModel)
 
 	err = inaSensorModule.Start(ctx)
 	defer inaSensorModule.Close(ctx)

@@ -3,7 +3,7 @@ Module for INA3221 series power monitors
 
 Tested and known to work on the INA3221. Support for other INA modules already in mainline Viam RDK.
 
-This can act as a `sensor`, reporting all channels simultaneously, or as a `powersensor`, for which each channel must be configured individually.
+This can act as a `sensor`, reporting all channels simultaneously, or as a `power_sensor`, for which each channel must be configured individually.
 
 ## Usage
 
@@ -46,8 +46,8 @@ And/or, use the following to configure as a power sensor:
   "components": [
     {
       "name": "solarChannel",
-      "type": "powersensor",
-      "model": "beering:sensor:ina",
+      "type": "power_sensor",
+      "model": "beering:power_sensor:ina",
       "attributes": {
         "model": "ina3221",
         "channel": "channel1",
@@ -57,8 +57,8 @@ And/or, use the following to configure as a power sensor:
     },
     {
       "name": "boardConsumption",
-      "type": "powersensor",
-      "model": "beering:sensor:ina",
+      "type": "power_sensor",
+      "model": "beering:power_sensor:ina",
       "attributes": {
         "model": "ina3221",
         "channel": "channel2",
