@@ -1,0 +1,17 @@
+{
+  "module_id": "bee-ring:ina3221",
+  "visibility": "public",
+  "url": "https://github.com/Bee-Ring/ina-viam-module",
+  "description": "Module for INA3221 series power monitors",
+  "models": [
+    {
+      "api": "rdk:component:sensor",
+      "model": "bee-ring:sensor:ina"
+    },
+    {
+      "api": "rdk:component:power_sensor",
+      "model": "bee-ring:power_sensor:ina"
+    }
+  ],
+  "entrypoint": "inaModule"
+}

@@ -23,8 +23,8 @@ import (
 	"go.viam.com/rdk/resource"
 )
 
-var Model = resource.ModelNamespace("beering").WithFamily("sensor").WithModel("ina")
-var PowerModel = resource.ModelNamespace("beering").WithFamily("power_sensor").WithModel("ina")
+var Model = resource.ModelNamespace("bee-ring").WithFamily("sensor").WithModel("ina")
+var PowerModel = resource.ModelNamespace("bee-ring").WithFamily("power_sensor").WithModel("ina")
 
 const (
 	milliAmp                   = 1000 * 1000 // milliAmp = 1000 microAmpere * 1000 nanoAmpere

@@ -24,7 +24,7 @@ Copy the binary to the robot (system where viam-server is running) and add the f
     {
       "name": "ina_for_example",
       "type": "sensor",
-      "model": "beering:sensor:ina",
+      "model": "bee-ring:sensor:ina",
       "attributes": {
         "model": "ina3221",
         "i2c_bus": "0"
@@ -47,7 +47,7 @@ And/or, use the following to configure as a power sensor:
     {
       "name": "solarChannel",
       "type": "power_sensor",
-      "model": "beering:power_sensor:ina",
+      "model": "bee-ring:power_sensor:ina",
       "attributes": {
         "model": "ina3221",
         "channel": "channel1",
@@ -58,7 +58,7 @@ And/or, use the following to configure as a power sensor:
     {
       "name": "boardConsumption",
       "type": "power_sensor",
-      "model": "beering:power_sensor:ina",
+      "model": "bee-ring:power_sensor:ina",
       "attributes": {
         "model": "ina3221",
         "channel": "channel2",
