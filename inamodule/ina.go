@@ -38,6 +38,7 @@ type Config struct {
 	Model   string `json:"model"`
 	I2CBus  string `json:"i2c_bus"`
 	I2cAddr int    `json:"i2c_addr,omitempty"`
+	Channel string    `json:"channel,omitempty"`
 }
 
 // Validate ensures all parts of the config are valid.
@@ -48,6 +49,11 @@ func (config *Config) Validate(path string) ([]string, error) {
 	}
 	if config.Model == "" {
 		return nil, utils.NewConfigValidationFieldRequiredError(path, "model")
+	}
+	if config.Channel != "" {
+		if config.Channel != "channel1" && config.Channel != "channel2" && config.Channel != "channel3" {
+			return nil, fmt.Errorf("specified channel was %s. Valid options are channel1, channel2, or channel3", config.Channel)
+		}
 	}
 	return deps, nil
 }
@@ -106,6 +112,7 @@ func newSensor(
 		addr:   byte(addr),
 		reg: reg,
 		boardModel: attr.Model,
+		channel: attr.Channel,
 	}
 	
 	switch s.boardModel {
@@ -134,6 +141,7 @@ type inaSensor struct {
 	powerLSB   int64
 	cal        uint16
 	boardModel string
+	channel    string
 }
 
 type powerMonitor struct {
@@ -306,6 +314,51 @@ func (ina *inaSensor) Readings(ctx context.Context, extra map[string]interface{}
 			"watts": pm3.Power,
 		},
 	}, nil
+}
+
+func (ina *inaSensor) Voltage(ctx context.Context, extra map[string]interface{}) (float64, bool, error) {
+	if ina.channel == "" {
+		return 0, false, errors.New("no channel specified")
+	}
+	readings, err := ina.Readings(ctx, extra)
+	if err != nil {
+		return 0, false, err
+	}
+	
+	vals := readings[ina.channel].(map[string]interface{})
+	volts := vals["volts"].(float64)
+	
+	return volts, false, nil
+}
+
+func (ina *inaSensor) Current(ctx context.Context, extra map[string]interface{}) (float64, bool, error) {
+	if ina.channel == "" {
+		return 0, false, errors.New("no channel specified")
+	}
+	readings, err := ina.Readings(ctx, extra)
+	if err != nil {
+		return 0, false, err
+	}
+	
+	vals := readings[ina.channel].(map[string]interface{})
+	amps := vals["amps"].(float64)
+	
+	return amps, false, nil
+}
+
+func (ina *inaSensor) Power(ctx context.Context, extra map[string]interface{}) (float64, error) {
+	if ina.channel == "" {
+		return 0, errors.New("no channel specified")
+	}
+	readings, err := ina.Readings(ctx, extra)
+	if err != nil {
+		return 0, err
+	}
+	
+	vals := readings[ina.channel].(map[string]interface{})
+	watts := vals["watts"].(float64)
+	
+	return watts, nil
 }
 
 func currentAndPowerFromVoltages(shuntRaw []byte, busV float64) (float64, float64) {

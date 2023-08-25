@@ -1,7 +1,9 @@
 # INA power sensor Viam module
-Module for INA series power monitors
+Module for INA3221 series power monitors
 
-Tested and known to work on at least the INA219 and the INA3221. Tentative support for the INA226.
+Tested and known to work on the INA3221. Support for other INA modules already in mainline Viam RDK.
+
+This can act as a `sensor`, reporting all channels simultaneously, or as a `powersensor`, for which each channel must be configured individually.
 
 ## Usage
 
@@ -15,7 +17,7 @@ go build -o inaModule
 
 ### 2. Add to robot configuration
 
-Copy the binary to the robot (system where viam-server is running) and add the following to your configuration:
+Copy the binary to the robot (system where viam-server is running) and add the following to your configuration to use as a sensor:
 
 ```
   "components": [
@@ -25,6 +27,41 @@ Copy the binary to the robot (system where viam-server is running) and add the f
       "model": "beering:sensor:ina",
       "attributes": {
         "model": "ina3221",
+        "i2c_bus": "0"
+      },
+      "depends_on": []
+    }
+  ],
+  "modules": [
+    {
+      "name": "inaModule_for_example",
+      "executable_path": "/path/to/executable/inaModule"
+    }
+  ]
+```
+
+And/or, use the following to configure as a power sensor:
+
+```
+  "components": [
+    {
+      "name": "solarChannel",
+      "type": "powersensor",
+      "model": "beering:sensor:ina",
+      "attributes": {
+        "model": "ina3221",
+        "channel": "channel1",
+        "i2c_bus": "0"
+      },
+      "depends_on": []
+    },
+    {
+      "name": "boardConsumption",
+      "type": "powersensor",
+      "model": "beering:sensor:ina",
+      "attributes": {
+        "model": "ina3221",
+        "channel": "channel2",
         "i2c_bus": "0"
       },
       "depends_on": []

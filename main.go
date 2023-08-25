@@ -7,6 +7,7 @@ import (
 	"github.com/edaniels/golog"
 	"github.com/bee-ring/ina-viam-module/inamodule"
 	"go.viam.com/rdk/components/sensor"
+	"go.viam.com/rdk/components/powersensor"
 	"go.viam.com/rdk/module"
 	"go.viam.com/utils"
 )
@@ -22,6 +23,7 @@ func mainWithArgs(ctx context.Context, args []string, logger golog.Logger) error
 	}
 
 	inaSensorModule.AddModelFromRegistry(ctx, sensor.API, inamodule.Model)
+	inaSensorModule.AddModelFromRegistry(ctx, powersensor.API, inamodule.Model)
 
 	err = inaSensorModule.Start(ctx)
 	defer inaSensorModule.Close(ctx)
