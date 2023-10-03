@@ -42,7 +42,7 @@ jobs:
       if: github.event_name == 'release'
       with:
         module-path: module-arm.tar.gz
-        platform: linux/amd64
+        platform: linux/arm
         version: ${{ env.VERSION }}
         key-id: ${{ secrets.viam_key_id }}
         key-value: ${{ secrets.viam_key_value }}
