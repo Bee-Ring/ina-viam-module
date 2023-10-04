@@ -19,25 +19,7 @@ jobs:
       run: go mod download
     - name: build
       run: |
-        GOARCH=arm64 make module.tar.gz && mv module.tar.gz module-arm64.tar.gz
-        GOARCH=amd64 make module.tar.gz && mv module.tar.gz module-amd64.tar.gz
         GOARCH=arm make module.tar.gz && mv module.tar.gz module-arm.tar.gz
-    - uses: viamrobotics/upload-module@main
-      if: github.event_name == 'release'
-      with:
-        module-path: module-arm64.tar.gz
-        platform: linux/arm64
-        version: ${{ env.VERSION }}
-        key-id: ${{ secrets.viam_key_id }}
-        key-value: ${{ secrets.viam_key_value }}
-    - uses: viamrobotics/upload-module@main
-      if: github.event_name == 'release'
-      with:
-        module-path: module-amd64.tar.gz
-        platform: linux/amd64
-        version: ${{ env.VERSION }}
-        key-id: ${{ secrets.viam_key_id }}
-        key-value: ${{ secrets.viam_key_value }}
     - uses: viamrobotics/upload-module@main
       if: github.event_name == 'release'
       with:
