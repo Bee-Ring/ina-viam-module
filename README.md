@@ -74,3 +74,15 @@ And/or, use the following to configure as a power sensor:
     }
   ]
 ```
+
+Additionally, you may set a floating point number in the `voltageMul` attributes field, and the voltage returned by `Voltage()` will be multiplied by this number. This is useful in the case where you are monitoring a higher-voltage battery and are using a voltage divider to halve the voltage. Note that only the output of `Voltage()` is changed, the voltage value returned by `Readings()` will be the raw value.
+
+Example, if you used a voltage divider to halve the voltage:
+```
+      "attributes": {
+        "model": "ina3221",
+        "channel": "channel2",
+        "voltageMul": 2.0,
+        "i2c_bus": "0"
+      },
+```
