@@ -21,7 +21,7 @@ jobs:
       run: |
         GOARCH=arm64 make --always-make module.tar.gz && mv module.tar.gz module-arm64.tar.gz
         GOARCH=amd64 make --always-make module.tar.gz && mv module.tar.gz module-amd64.tar.gz
-        GOARCH=arm make --always-make module.tar.gz && mv module.tar.gz module-arm.tar.gz
+        GOARCH=arm make --always-make module.tar.gz && mv module.tar.gz module-arm7l.tar.gz
     - uses: viamrobotics/upload-module@main
       if: github.event_name == 'release'
       with:
@@ -41,8 +41,8 @@ jobs:
     - uses: viamrobotics/upload-module@main
       if: github.event_name == 'release'
       with:
-        module-path: module-arm.tar.gz
-        platform: linux/arm
+        module-path: module-arm7l.tar.gz
+        platform: linux/arm7l
         version: ${{ env.VERSION }}
         key-id: ${{ secrets.viam_key_id }}
         key-value: ${{ secrets.viam_key_value }}
