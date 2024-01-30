@@ -13,13 +13,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/edaniels/golog"
 	"go.viam.com/utils"
 
-	"go.viam.com/rdk/components/board"
-	"go.viam.com/rdk/components/board/genericlinux"
+	"go.viam.com/rdk/components/board/genericlinux/buses"
 	"go.viam.com/rdk/components/sensor"
 	"go.viam.com/rdk/components/powersensor"
+	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/resource"
 )
 
@@ -41,6 +40,7 @@ type Config struct {
 	I2CBus  string `json:"i2c_bus"`
 	I2cAddr int    `json:"i2c_addr,omitempty"`
 	Channel string    `json:"channel,omitempty"`
+	VoltageMul float64    `json:"voltageMul,omitempty"`
 }
 
 // Validate ensures all parts of the config are valid.
@@ -69,7 +69,7 @@ func init() {
 				ctx context.Context,
 				deps resource.Dependencies,
 				conf resource.Config,
-				logger golog.Logger,
+				logger logging.Logger,
 			) (sensor.Sensor, error) {
 				newConf, err := resource.NativeConfig[*Config](conf)
 				if err != nil {
@@ -86,7 +86,7 @@ func init() {
 				ctx context.Context,
 				deps resource.Dependencies,
 				conf resource.Config,
-				logger golog.Logger,
+				logger logging.Logger,
 			) (powersensor.PowerSensor, error) {
 				newConf, err := resource.NativeConfig[*Config](conf)
 				if err != nil {
@@ -102,7 +102,7 @@ func newSensor(
 	deps resource.Dependencies,
 	name resource.Name,
 	attr *Config,
-	logger golog.Logger,
+	logger logging.Logger,
 ) (*inaSensor, error) {
 	regFunc, ok := modelInitializer[attr.Model]
 	if !ok {
@@ -114,7 +114,7 @@ func newSensor(
 	}
 	reg := regFunc()
 	
-	i2cbus, err := genericlinux.NewI2cBus(attr.I2CBus)
+	i2cbus, err := buses.NewI2cBus(attr.I2CBus)
 	if err != nil {
 		return nil, err
 	}
@@ -152,8 +152,8 @@ type inaSensor struct {
 	resource.Named
 	resource.AlwaysRebuild
 	resource.TriviallyCloseable
-	logger     golog.Logger
-	bus        board.I2C
+	logger     logging.Logger
+	bus        buses.I2C
 	addr       byte
 	reg       map[RegName]Register
 	currentLSB int64

@@ -4,7 +4,7 @@ package main
 import (
 	"context"
 
-	"github.com/edaniels/golog"
+	"go.viam.com/rdk/logging"
 	"github.com/bee-ring/ina-viam-module/inamodule"
 	"go.viam.com/rdk/components/sensor"
 	"go.viam.com/rdk/components/powersensor"
@@ -13,10 +13,10 @@ import (
 )
 
 func main() {
-	utils.ContextualMain(mainWithArgs, golog.NewDevelopmentLogger("inaModule"))
+	utils.ContextualMain(mainWithArgs, logging.NewLogger("inaModule"))
 }
 
-func mainWithArgs(ctx context.Context, args []string, logger golog.Logger) error {
+func mainWithArgs(ctx context.Context, args []string, logger logging.Logger) error {
 	inaSensorModule, err := module.NewModuleFromArgs(ctx, logger)
 	if err != nil {
 		return err
