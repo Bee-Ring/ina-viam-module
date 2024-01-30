@@ -132,6 +132,7 @@ func newSensor(
 		reg: reg,
 		boardModel: attr.Model,
 		channel: attr.Channel,
+		mul: attr.VoltageMul,
 	}
 	
 	switch s.boardModel {
@@ -161,6 +162,7 @@ type inaSensor struct {
 	cal        uint16
 	boardModel string
 	channel    string
+	mul float64
 }
 
 type powerMonitor struct {
@@ -258,9 +260,6 @@ func (ina *inaSensor) Readings(ctx context.Context, extra map[string]interface{}
 		if err != nil {
 			return nil, err
 		}
-		ina.logger.Infof("inaSensor shunt raw : %d", shunt)
-		shuntV := float64(binary.BigEndian.Uint16(shunt)) * 40. / 8. / 1000000.
-		ina.logger.Infof("inaSensor shunt uint: %d float: %f", binary.BigEndian.Uint16(shunt), shuntV)
 		if binary.BigEndian.Uint16(shunt)&1 > 0 {
 			return nil, errors.New("inaSensor shunt 1 voltage register overflow")
 		}
@@ -346,7 +345,9 @@ func (ina *inaSensor) Voltage(ctx context.Context, extra map[string]interface{})
 	
 	vals := readings[ina.channel].(map[string]interface{})
 	volts := vals["volts"].(float64)
-	
+	if ina.mul != 0 {
+		volts *= ina.mul
+	}
 	return volts, false, nil
 }
 
